@@ -1,27 +1,26 @@
-using Microsoft.AspNetCore.Builder;
-using Microsoft.EntityFrameworkCore; // Add this using statement
-using PromoTrack.Infrastructure.Data;  // Add this using statement
+using Microsoft.EntityFrameworkCore;
+using PromoTrack.Application.Interfaces; // Add this using
+using PromoTrack.Infrastructure.Data;
+using PromoTrack.Infrastructure.Repositories; // Add this using
 
 var builder = WebApplication.CreateBuilder(args);
 
 // --- START: Add our services to the container ---
-
-// 1. Get the database connection string from appsettings.json
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-// 2. Register ApplicationDbContext with the Dependency Injection container
-//    We also configure it to use SQL Server with the connection string we just retrieved.
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 
+// Register our repository.
+// When a class asks for IUserRepository, the DI container will provide an instance of UserRepository.
+// AddScoped means a new instance is created for each web request.
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+
 
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
 // --- END: Add our services to the container ---
-
 
 var app = builder.Build();
 
