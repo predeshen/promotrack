@@ -1,30 +1,32 @@
 using Microsoft.EntityFrameworkCore;
-using PromoTrack.Application.Interfaces; // Add this using
+using PromoTrack.Application.Interfaces; 
 using PromoTrack.Infrastructure.Data;
-using PromoTrack.Infrastructure.Repositories; // Add this using
+using PromoTrack.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// --- START: Add our services to the container ---
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 
-// Register our repository.
-// When a class asks for IUserRepository, the DI container will provide an instance of UserRepository.
-// AddScoped means a new instance is created for each web request.
+//Dependency Injection
 builder.Services.AddScoped<IUserRepository, UserRepository>();
-
+builder.Services.AddScoped<IBrandRepository, BrandRepository>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<ICampaignRepository, CampaignRepository>();
+builder.Services.AddScoped<IStoreRepository, StoreRepository>();
+builder.Services.AddScoped<IPromoterActivityRepository, PromoterActivityRepository>();
+builder.Services.AddScoped<IShelfImageRepository, ShelfImageRepository>();
+builder.Services.AddScoped<IExtractedProductDataRepository, ExtractedProductDataRepository>();
+builder.Services.AddScoped<IQuestionRepository, QuestionRepository>(); 
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-// --- END: Add our services to the container ---
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PromoTrack.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using PromoTrack.Infrastructure.Data;
 namespace PromoTrack.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250610200206_AddShelfImageEntity")]
+    partial class AddShelfImageEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -49,30 +52,6 @@ namespace PromoTrack.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Brands");
-                });
-
-            modelBuilder.Entity("PromoTrack.Domain.BrandQuestionDefault", b =>
-                {
-                    b.Property<int>("BrandId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("QuestionId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("BrandQuestionDefaultId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsMandatoryByDefault")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("SortOrder")
-                        .HasColumnType("int");
-
-                    b.HasKey("BrandId", "QuestionId");
-
-                    b.HasIndex("QuestionId");
-
-                    b.ToTable("BrandQuestionDefaults");
                 });
 
             modelBuilder.Entity("PromoTrack.Domain.Campaign", b =>
@@ -131,71 +110,6 @@ namespace PromoTrack.Infrastructure.Migrations
                     b.HasIndex("ProductId");
 
                     b.ToTable("CampaignProducts");
-                });
-
-            modelBuilder.Entity("PromoTrack.Domain.CampaignQuestionConfig", b =>
-                {
-                    b.Property<int>("CampaignId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("QuestionId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("CampaignQuestionConfigId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsActiveForCampaign")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsMandatoryForCampaign")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("SortOrderForCampaign")
-                        .HasColumnType("int");
-
-                    b.HasKey("CampaignId", "QuestionId");
-
-                    b.HasIndex("QuestionId");
-
-                    b.ToTable("CampaignQuestionConfigs");
-                });
-
-            modelBuilder.Entity("PromoTrack.Domain.ExtractedProductData", b =>
-                {
-                    b.Property<int>("ExtractedProductDataId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ExtractedProductDataId"));
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("ItemsSold")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Notes")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal?>("Price")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PromoterActivityId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("QuantityOnShelf")
-                        .HasColumnType("int");
-
-                    b.HasKey("ExtractedProductDataId");
-
-                    b.HasIndex("ProductId");
-
-                    b.HasIndex("PromoterActivityId");
-
-                    b.ToTable("ExtractedProductData");
                 });
 
             modelBuilder.Entity("PromoTrack.Domain.Product", b =>
@@ -287,61 +201,6 @@ namespace PromoTrack.Infrastructure.Migrations
                     b.ToTable("PromoterActivities");
                 });
 
-            modelBuilder.Entity("PromoTrack.Domain.Question", b =>
-                {
-                    b.Property<int>("QuestionId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("QuestionId"));
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("HintText")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("QuestionText")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("QuestionType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("QuestionId");
-
-                    b.ToTable("Questions");
-                });
-
-            modelBuilder.Entity("PromoTrack.Domain.QuestionOption", b =>
-                {
-                    b.Property<int>("QuestionOptionId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("QuestionOptionId"));
-
-                    b.Property<string>("OptionText")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("QuestionId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SortOrder")
-                        .HasColumnType("int");
-
-                    b.HasKey("QuestionOptionId");
-
-                    b.HasIndex("QuestionId");
-
-                    b.ToTable("QuestionOptions");
-                });
-
             modelBuilder.Entity("PromoTrack.Domain.ShelfImage", b =>
                 {
                     b.Property<int>("ShelfImageId")
@@ -421,58 +280,6 @@ namespace PromoTrack.Infrastructure.Migrations
                     b.ToTable("Stores");
                 });
 
-            modelBuilder.Entity("PromoTrack.Domain.SurveyAnswer", b =>
-                {
-                    b.Property<int>("SurveyAnswerId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SurveyAnswerId"));
-
-                    b.Property<string>("AnswerText")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("AnswerTimestamp")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("PromoterActivityId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("QuestionId")
-                        .HasColumnType("int");
-
-                    b.HasKey("SurveyAnswerId");
-
-                    b.HasIndex("PromoterActivityId");
-
-                    b.HasIndex("QuestionId");
-
-                    b.ToTable("SurveyAnswers");
-                });
-
-            modelBuilder.Entity("PromoTrack.Domain.SurveyAnswerSelectedOption", b =>
-                {
-                    b.Property<int>("SurveyAnswerSelectedOptionId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SurveyAnswerSelectedOptionId"));
-
-                    b.Property<int>("QuestionOptionId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SurveyAnswerId")
-                        .HasColumnType("int");
-
-                    b.HasKey("SurveyAnswerSelectedOptionId");
-
-                    b.HasIndex("QuestionOptionId");
-
-                    b.HasIndex("SurveyAnswerId");
-
-                    b.ToTable("SurveyAnswerSelectedOptions");
-                });
-
             modelBuilder.Entity("PromoTrack.Domain.User", b =>
                 {
                     b.Property<int>("UserId")
@@ -521,25 +328,6 @@ namespace PromoTrack.Infrastructure.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("PromoTrack.Domain.BrandQuestionDefault", b =>
-                {
-                    b.HasOne("PromoTrack.Domain.Brand", "Brand")
-                        .WithMany("DefaultQuestions")
-                        .HasForeignKey("BrandId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("PromoTrack.Domain.Question", "Question")
-                        .WithMany("BrandDefaults")
-                        .HasForeignKey("QuestionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Brand");
-
-                    b.Navigation("Question");
-                });
-
             modelBuilder.Entity("PromoTrack.Domain.Campaign", b =>
                 {
                     b.HasOne("PromoTrack.Domain.Brand", "Brand")
@@ -570,44 +358,6 @@ namespace PromoTrack.Infrastructure.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("PromoTrack.Domain.CampaignQuestionConfig", b =>
-                {
-                    b.HasOne("PromoTrack.Domain.Campaign", "Campaign")
-                        .WithMany("QuestionConfigurations")
-                        .HasForeignKey("CampaignId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("PromoTrack.Domain.Question", "Question")
-                        .WithMany("CampaignConfigurations")
-                        .HasForeignKey("QuestionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Campaign");
-
-                    b.Navigation("Question");
-                });
-
-            modelBuilder.Entity("PromoTrack.Domain.ExtractedProductData", b =>
-                {
-                    b.HasOne("PromoTrack.Domain.Product", "Product")
-                        .WithMany()
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("PromoTrack.Domain.PromoterActivity", "PromoterActivity")
-                        .WithMany("ProductData")
-                        .HasForeignKey("PromoterActivityId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Product");
-
-                    b.Navigation("PromoterActivity");
-                });
-
             modelBuilder.Entity("PromoTrack.Domain.PromoterActivity", b =>
                 {
                     b.HasOne("PromoTrack.Domain.Campaign", "Campaign")
@@ -635,17 +385,6 @@ namespace PromoTrack.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("PromoTrack.Domain.QuestionOption", b =>
-                {
-                    b.HasOne("PromoTrack.Domain.Question", "Question")
-                        .WithMany("Options")
-                        .HasForeignKey("QuestionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Question");
-                });
-
             modelBuilder.Entity("PromoTrack.Domain.ShelfImage", b =>
                 {
                     b.HasOne("PromoTrack.Domain.PromoterActivity", "PromoterActivity")
@@ -657,54 +396,9 @@ namespace PromoTrack.Infrastructure.Migrations
                     b.Navigation("PromoterActivity");
                 });
 
-            modelBuilder.Entity("PromoTrack.Domain.SurveyAnswer", b =>
-                {
-                    b.HasOne("PromoTrack.Domain.PromoterActivity", "PromoterActivity")
-                        .WithMany("SurveyAnswers")
-                        .HasForeignKey("PromoterActivityId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("PromoTrack.Domain.Question", "Question")
-                        .WithMany()
-                        .HasForeignKey("QuestionId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("PromoterActivity");
-
-                    b.Navigation("Question");
-                });
-
-            modelBuilder.Entity("PromoTrack.Domain.SurveyAnswerSelectedOption", b =>
-                {
-                    b.HasOne("PromoTrack.Domain.QuestionOption", "QuestionOption")
-                        .WithMany()
-                        .HasForeignKey("QuestionOptionId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("PromoTrack.Domain.SurveyAnswer", "SurveyAnswer")
-                        .WithMany("SelectedOptions")
-                        .HasForeignKey("SurveyAnswerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("QuestionOption");
-
-                    b.Navigation("SurveyAnswer");
-                });
-
-            modelBuilder.Entity("PromoTrack.Domain.Brand", b =>
-                {
-                    b.Navigation("DefaultQuestions");
-                });
-
             modelBuilder.Entity("PromoTrack.Domain.Campaign", b =>
                 {
                     b.Navigation("CampaignProducts");
-
-                    b.Navigation("QuestionConfigurations");
                 });
 
             modelBuilder.Entity("PromoTrack.Domain.Product", b =>
@@ -714,25 +408,7 @@ namespace PromoTrack.Infrastructure.Migrations
 
             modelBuilder.Entity("PromoTrack.Domain.PromoterActivity", b =>
                 {
-                    b.Navigation("ProductData");
-
                     b.Navigation("ShelfImages");
-
-                    b.Navigation("SurveyAnswers");
-                });
-
-            modelBuilder.Entity("PromoTrack.Domain.Question", b =>
-                {
-                    b.Navigation("BrandDefaults");
-
-                    b.Navigation("CampaignConfigurations");
-
-                    b.Navigation("Options");
-                });
-
-            modelBuilder.Entity("PromoTrack.Domain.SurveyAnswer", b =>
-                {
-                    b.Navigation("SelectedOptions");
                 });
 #pragma warning restore 612, 618
         }

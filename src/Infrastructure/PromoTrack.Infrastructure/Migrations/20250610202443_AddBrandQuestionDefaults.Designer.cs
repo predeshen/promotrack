@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PromoTrack.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using PromoTrack.Infrastructure.Data;
 namespace PromoTrack.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250610202443_AddBrandQuestionDefaults")]
+    partial class AddBrandQuestionDefaults
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -131,33 +134,6 @@ namespace PromoTrack.Infrastructure.Migrations
                     b.HasIndex("ProductId");
 
                     b.ToTable("CampaignProducts");
-                });
-
-            modelBuilder.Entity("PromoTrack.Domain.CampaignQuestionConfig", b =>
-                {
-                    b.Property<int>("CampaignId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("QuestionId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("CampaignQuestionConfigId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsActiveForCampaign")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsMandatoryForCampaign")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("SortOrderForCampaign")
-                        .HasColumnType("int");
-
-                    b.HasKey("CampaignId", "QuestionId");
-
-                    b.HasIndex("QuestionId");
-
-                    b.ToTable("CampaignQuestionConfigs");
                 });
 
             modelBuilder.Entity("PromoTrack.Domain.ExtractedProductData", b =>
@@ -421,58 +397,6 @@ namespace PromoTrack.Infrastructure.Migrations
                     b.ToTable("Stores");
                 });
 
-            modelBuilder.Entity("PromoTrack.Domain.SurveyAnswer", b =>
-                {
-                    b.Property<int>("SurveyAnswerId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SurveyAnswerId"));
-
-                    b.Property<string>("AnswerText")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("AnswerTimestamp")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("PromoterActivityId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("QuestionId")
-                        .HasColumnType("int");
-
-                    b.HasKey("SurveyAnswerId");
-
-                    b.HasIndex("PromoterActivityId");
-
-                    b.HasIndex("QuestionId");
-
-                    b.ToTable("SurveyAnswers");
-                });
-
-            modelBuilder.Entity("PromoTrack.Domain.SurveyAnswerSelectedOption", b =>
-                {
-                    b.Property<int>("SurveyAnswerSelectedOptionId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SurveyAnswerSelectedOptionId"));
-
-                    b.Property<int>("QuestionOptionId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SurveyAnswerId")
-                        .HasColumnType("int");
-
-                    b.HasKey("SurveyAnswerSelectedOptionId");
-
-                    b.HasIndex("QuestionOptionId");
-
-                    b.HasIndex("SurveyAnswerId");
-
-                    b.ToTable("SurveyAnswerSelectedOptions");
-                });
-
             modelBuilder.Entity("PromoTrack.Domain.User", b =>
                 {
                     b.Property<int>("UserId")
@@ -570,25 +494,6 @@ namespace PromoTrack.Infrastructure.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("PromoTrack.Domain.CampaignQuestionConfig", b =>
-                {
-                    b.HasOne("PromoTrack.Domain.Campaign", "Campaign")
-                        .WithMany("QuestionConfigurations")
-                        .HasForeignKey("CampaignId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("PromoTrack.Domain.Question", "Question")
-                        .WithMany("CampaignConfigurations")
-                        .HasForeignKey("QuestionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Campaign");
-
-                    b.Navigation("Question");
-                });
-
             modelBuilder.Entity("PromoTrack.Domain.ExtractedProductData", b =>
                 {
                     b.HasOne("PromoTrack.Domain.Product", "Product")
@@ -657,44 +562,6 @@ namespace PromoTrack.Infrastructure.Migrations
                     b.Navigation("PromoterActivity");
                 });
 
-            modelBuilder.Entity("PromoTrack.Domain.SurveyAnswer", b =>
-                {
-                    b.HasOne("PromoTrack.Domain.PromoterActivity", "PromoterActivity")
-                        .WithMany("SurveyAnswers")
-                        .HasForeignKey("PromoterActivityId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("PromoTrack.Domain.Question", "Question")
-                        .WithMany()
-                        .HasForeignKey("QuestionId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("PromoterActivity");
-
-                    b.Navigation("Question");
-                });
-
-            modelBuilder.Entity("PromoTrack.Domain.SurveyAnswerSelectedOption", b =>
-                {
-                    b.HasOne("PromoTrack.Domain.QuestionOption", "QuestionOption")
-                        .WithMany()
-                        .HasForeignKey("QuestionOptionId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("PromoTrack.Domain.SurveyAnswer", "SurveyAnswer")
-                        .WithMany("SelectedOptions")
-                        .HasForeignKey("SurveyAnswerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("QuestionOption");
-
-                    b.Navigation("SurveyAnswer");
-                });
-
             modelBuilder.Entity("PromoTrack.Domain.Brand", b =>
                 {
                     b.Navigation("DefaultQuestions");
@@ -703,8 +570,6 @@ namespace PromoTrack.Infrastructure.Migrations
             modelBuilder.Entity("PromoTrack.Domain.Campaign", b =>
                 {
                     b.Navigation("CampaignProducts");
-
-                    b.Navigation("QuestionConfigurations");
                 });
 
             modelBuilder.Entity("PromoTrack.Domain.Product", b =>
@@ -717,22 +582,13 @@ namespace PromoTrack.Infrastructure.Migrations
                     b.Navigation("ProductData");
 
                     b.Navigation("ShelfImages");
-
-                    b.Navigation("SurveyAnswers");
                 });
 
             modelBuilder.Entity("PromoTrack.Domain.Question", b =>
                 {
                     b.Navigation("BrandDefaults");
 
-                    b.Navigation("CampaignConfigurations");
-
                     b.Navigation("Options");
-                });
-
-            modelBuilder.Entity("PromoTrack.Domain.SurveyAnswer", b =>
-                {
-                    b.Navigation("SelectedOptions");
                 });
 #pragma warning restore 612, 618
         }
