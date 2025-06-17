@@ -19,7 +19,16 @@ builder.Services.AddScoped<IStoreRepository, StoreRepository>();
 builder.Services.AddScoped<IPromoterActivityRepository, PromoterActivityRepository>();
 builder.Services.AddScoped<IShelfImageRepository, ShelfImageRepository>();
 builder.Services.AddScoped<IExtractedProductDataRepository, ExtractedProductDataRepository>();
-builder.Services.AddScoped<IQuestionRepository, QuestionRepository>(); 
+builder.Services.AddScoped<IQuestionRepository, QuestionRepository>();
+
+// --- ADD CORS POLICY ---
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowBlazorApp",
+        builder => builder.WithOrigins("https://localhost:7276") // Use your PWA's HTTPS URL
+                           .AllowAnyHeader()
+                           .AllowAnyMethod());
+});
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -34,6 +43,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+// --- USE THE CORS POLICY ---
+app.UseCors("AllowBlazorApp");
 
 app.UseAuthorization();
 
