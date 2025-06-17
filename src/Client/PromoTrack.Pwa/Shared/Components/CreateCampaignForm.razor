@@ -1,0 +1,125 @@
+﻿@using PromoTrack.Pwa.Models
+@using System.Net.Http.Json
+@using System.ComponentModel.DataAnnotations
+@inject HttpClient Http
+
+<EditForm Model="@campaign" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+
+    <div class="space-y-4">
+        <div>
+            <label for="campaignName" class="form-label">Campaign Name</label>
+            <InputText id="campaignName" class="form-input" @bind-Value="campaign.CampaignName" />
+            <ValidationMessage For="@(() => campaign.CampaignName)" />
+        </div>
+
+        <div>
+            <label for="brand" class="form-label">Brand</label>
+            <InputSelect id="brand" class="form-input" @bind-Value="campaign.BrandId">
+                <option value="0">Select a brand...</option>
+                @if (brandsForSelection != null)
+                {
+                    @foreach (var brand in brandsForSelection)
+                    {
+                        <option value="@brand.BrandId">@brand.BrandName</option>
+                    }
+                }
+            </InputSelect>
+            <ValidationMessage For="@(() => campaign.BrandId)" />
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label for="startDate" class="form-label">Start Date</label>
+                <InputDate id="startDate" class="form-input" @bind-Value="campaign.StartDate" />
+                <ValidationMessage For="@(() => campaign.StartDate)" />
+            </div>
+            <div>
+                <label for="endDate" class="form-label">End Date</label>
+                <InputDate id="endDate" class="form-input" @bind-Value="campaign.EndDate" />
+                <ValidationMessage For="@(() => campaign.EndDate)" />
+            </div>
+        </div>
+
+        <div>
+            <label for="description" class="form-label">Description</label>
+            <InputTextArea id="description" class="form-input" @bind-Value="campaign.Description" />
+        </div>
+    </div>
+
+    <div class="mt-6 flex justify-end">
+        <button type="submit" class="btn-primary" disabled="@isSubmitting">
+            @(isSubmitting ? "Saving..." : "Create Campaign")
+        </button>
+    </div>
+</EditForm>
+
+@code {
+    [Parameter]
+    public EventCallback<Campaign> OnCampaignCreated { get; set; }
+
+    private CampaignCreateModel campaign = new();
+    private List<BrandSelectionModel>? brandsForSelection;
+    private bool isSubmitting = false;
+
+    // This method runs when the component is first initialized.
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Fetch the list of brands to populate the dropdown.
+            brandsForSelection = await Http.GetFromJsonAsync<List<BrandSelectionModel>>("api/brands");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching brands for selection: {ex.Message}");
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        isSubmitting = true;
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/campaigns", campaign);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var newCampaign = await response.Content.ReadFromJsonAsync<Campaign>();
+                if (newCampaign != null)
+                {
+                    await OnCampaignCreated.InvokeAsync(newCampaign);
+                }
+            }
+            else
+            {
+                Console.WriteLine($"Error creating campaign: {await response.Content.ReadAsStringAsync()}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception during campaign creation: {ex.Message}");
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    public class CampaignCreateModel
+    {
+        [Required]
+        public string CampaignName { get; set; } = string.Empty;
+
+        [Range(1, int.MaxValue, ErrorMessage = "Please select a brand.")]
+        public int BrandId { get; set; }
+
+        [Required]
+        public DateTime? StartDate { get; set; } = DateTime.Today;
+
+        [Required]
+        public DateTime? EndDate { get; set; } = DateTime.Today.AddDays(30);
+
+        public string? Description { get; set; }
+    }
+}

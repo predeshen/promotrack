@@ -19,11 +19,70 @@ public class CampaignRepository : ICampaignRepository
 
     public async Task<Campaign?> GetCampaignByIdAsync(int id)
     {
-        // Use Include to also load the related Brand data
-        return await _context.Campaigns
+        // 1. Fetch the core campaign details, including its brand and any SPECIFIC question overrides.
+        var campaign = await _context.Campaigns
             .Include(c => c.Brand)
+            .Include(c => c.CampaignProducts)
+                .ThenInclude(cp => cp.Product)
+            .Include(c => c.QuestionConfigurations)
+                .ThenInclude(qc => qc.Question)
+            .AsNoTracking() // Use AsNoTracking for a read-only query for better performance.
             .FirstOrDefaultAsync(c => c.CampaignId == id);
+
+        if (campaign == null)
+        {
+            return null;
+        }
+
+        // 2. Fetch the brand's default questions separately.
+        var brandDefaultQuestions = await _context.BrandQuestionDefaults
+            .Where(bqd => bqd.BrandId == campaign.BrandId)
+            .Include(bqd => bqd.Question)
+            .ToListAsync();
+
+        // 3. MERGE LOGIC: Combine the lists to create the effective list of questions.
+
+        var effectiveQuestionConfigs = new List<CampaignQuestionConfig>();
+        var campaignOverrideQuestionIds = new HashSet<int>(campaign.QuestionConfigurations.Select(qc => qc.QuestionId));
+
+        // First, add all the brand defaults, mapping them to the CampaignQuestionConfig structure.
+        foreach (var brandDefault in brandDefaultQuestions)
+        {
+            effectiveQuestionConfigs.Add(new CampaignQuestionConfig
+            {
+                CampaignId = campaign.CampaignId,
+                QuestionId = brandDefault.QuestionId,
+                IsActiveForCampaign = true, // Defaults to active
+                IsMandatoryForCampaign = brandDefault.IsMandatoryByDefault,
+                SortOrderForCampaign = brandDefault.SortOrder,
+                Question = brandDefault.Question
+            });
+        }
+
+        // Now, process the campaign-specific overrides.
+        foreach (var campaignConfig in campaign.QuestionConfigurations)
+        {
+            var existingConfig = effectiveQuestionConfigs.FirstOrDefault(ec => ec.QuestionId == campaignConfig.QuestionId);
+            if (existingConfig != null)
+            {
+                // If the question exists from a brand default, UPDATE it with the campaign's specific settings.
+                existingConfig.IsActiveForCampaign = campaignConfig.IsActiveForCampaign;
+                existingConfig.IsMandatoryForCampaign = campaignConfig.IsMandatoryForCampaign;
+                existingConfig.SortOrderForCampaign = campaignConfig.SortOrderForCampaign;
+            }
+            else
+            {
+                // If this is a new question added only at the campaign level, ADD it to the list.
+                effectiveQuestionConfigs.Add(campaignConfig);
+            }
+        }
+
+        // 4. Replace the campaign's original (potentially incomplete) list with our new, complete list.
+        campaign.QuestionConfigurations = effectiveQuestionConfigs;
+
+        return campaign;
     }
+
 
     public async Task<IEnumerable<Campaign>> GetAllCampaignsAsync()
     {

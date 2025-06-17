@@ -19,7 +19,10 @@ public class BrandRepository : IBrandRepository
 
     public async Task<Brand?> GetBrandByIdAsync(int id)
     {
-        return await _context.Brands.FindAsync(id);
+        return await _context.Brands
+            .Include(b => b.DefaultQuestions)
+            .ThenInclude(bqd => bqd.Question)
+            .FirstOrDefaultAsync(b => b.BrandId == id);
     }
 
     public async Task<IEnumerable<Brand>> GetAllBrandsAsync()

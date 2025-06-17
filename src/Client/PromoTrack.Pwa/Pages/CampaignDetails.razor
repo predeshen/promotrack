@@ -1,0 +1,145 @@
+﻿@page "/campaigns/{CampaignId:int}"
+@inject HttpClient Http
+@using PromoTrack.Pwa.Models
+@using PromoTrack.Pwa.Shared
+@using PromoTrack.Pwa.Shared.Components
+
+@if (campaign == null)
+{
+    <p><em>Loading campaign details...</em></p>
+}
+else
+{
+    <!-- Page Header -->
+    <div class="mb-8">
+        <h1 class="text-4xl font-bold">@campaign.CampaignName</h1>
+        <p class="text-lg text-gray-600">Brand: @campaign.Brand?.BrandName</p>
+        <p class="text-md text-gray-500">@campaign.StartDate.ToString("dd MMM yyyy") - @campaign.EndDate.ToString("dd MMM yyyy")</p>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Left Column: Products -->
+        <div class="lg:col-span-2">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-semibold">Products in Campaign</h2>
+                <button class="btn-primary" @onclick="OpenAddProductModal">+ Add Product</button>
+            </div>
+            <div class="bg-surface rounded-lg shadow-md">
+                <table class="w-full text-left">
+                    <thead class="border-b-2 border-border">
+                        <tr>
+                            <th class="p-4">SKU</th>
+                            <th class="p-4">Product Name</th>
+                            <th class="p-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (campaign.CampaignProducts.Any())
+                        {
+                            @foreach (var cp in campaign.CampaignProducts)
+                            {
+                                <tr class="border-b border-border last:border-b-0">
+                                    <td class="p-4 font-mono text-sm">@cp.Product?.Sku</td>
+                                    <td class="p-4 font-medium">@cp.Product?.ProductName</td>
+                                    <td class="p-4"><button class="text-sm font-medium text-red-600 hover:text-red-800">Remove</button></td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr><td colspan="3" class="p-4 text-center text-gray-500">No products have been added to this campaign yet.</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Right Column: Questions -->
+        <div class="lg:col-span-1">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-semibold">Questions</h2>
+                <button class="btn-primary" @onclick="OpenAddQuestionModal">+ Add Question</button>
+            </div>
+            <div class="bg-surface rounded-lg shadow-md p-4 space-y-3">
+                @if (campaign.QuestionConfigurations.Any())
+                {
+                    @foreach (var config in campaign.QuestionConfigurations.OrderBy(c => c.SortOrderForCampaign))
+                    {
+                        <div class="p-3 border rounded-md">
+                            <p class="font-semibold">@config.Question?.QuestionText</p>
+                            <div class="flex items-center space-x-4 mt-2 text-xs">
+                                <span class="font-medium @(config.IsMandatoryForCampaign ? "text-red-600" : "text-gray-500")">
+                                    @(config.IsMandatoryForCampaign ? "Mandatory" : "Optional")
+                                </span>
+                                <span class="font-medium @(config.IsActiveForCampaign ? "text-green-600" : "text-gray-500")">
+                                    @(config.IsActiveForCampaign ? "Active" : "Inactive")
+                                </span>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="text-center text-gray-500 py-4">No questions configured for this campaign yet.</p>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Modal for Adding a Product -->
+<Modal IsOpen="isAddProductModalOpen" Title="Add Product to Campaign" OnClose="CloseAddProductModal">
+    <AddProductToCampaignForm CampaignId="CampaignId" OnProductAdded="HandleProductAdded" />
+</Modal>
+
+<!-- Modal for Adding a Question -->
+<Modal IsOpen="isAddQuestionModalOpen" Title="Configure Question for Campaign" OnClose="CloseAddQuestionModal">
+    <ConfigureQuestionForm CampaignId="CampaignId" OnQuestionConfigured="HandleQuestionConfigured" />
+</Modal>
+
+@code {
+    [Parameter]
+    public int CampaignId { get; set; }
+
+    private Campaign? campaign;
+    private bool isAddProductModalOpen = false;
+    private bool isAddQuestionModalOpen = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCampaignDetails();
+    }
+
+    private async Task LoadCampaignDetails()
+    {
+        try
+        {
+            campaign = await Http.GetFromJsonAsync<Campaign>($"api/campaigns/{CampaignId}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching campaign details: {ex.Message}");
+        }
+    }
+
+    // Product Modal Handlers
+    private void OpenAddProductModal() => isAddProductModalOpen = true;
+    private void CloseAddProductModal() => isAddProductModalOpen = false;
+    private async Task HandleProductAdded()
+    {
+        CloseAddProductModal();
+        await LoadCampaignDetails();
+        StateHasChanged();
+    }
+
+    // Question Modal Handlers
+    private void OpenAddQuestionModal() => isAddQuestionModalOpen = true;
+    private void CloseAddQuestionModal() => isAddQuestionModalOpen = false;
+    private async Task HandleQuestionConfigured()
+    {
+        CloseAddQuestionModal();
+        await LoadCampaignDetails();
+        StateHasChanged();
+    }
+}

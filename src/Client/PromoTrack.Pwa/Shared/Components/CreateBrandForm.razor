@@ -1,0 +1,73 @@
+﻿@using PromoTrack.Pwa.Models
+@using System.Net.Http.Json
+@inject HttpClient Http
+
+<EditForm Model="@brand" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+
+    <div class="space-y-4">
+        <div>
+            <label for="brandName" class="form-label">Brand Name</label>
+            <InputText id="brandName" class="form-input" @bind-Value="brand.BrandName" />
+            <ValidationMessage For="@(() => brand.BrandName)" />
+        </div>
+
+        <div>
+            <label for="description" class="form-label">Description</label>
+            <InputTextArea id="description" class="form-input" @bind-Value="brand.Description" />
+        </div>
+    </div>
+
+    <div class="mt-6 flex justify-end">
+        <button type="submit" class="btn-primary" disabled="@isSubmitting">
+            @(isSubmitting ? "Saving..." : "Create Brand")
+        </button>
+    </div>
+</EditForm>
+
+@code {
+    [Parameter]
+    public EventCallback<Brand> OnBrandCreated { get; set; }
+
+    private BrandCreateModel brand = new();
+    private bool isSubmitting = false;
+
+    private async Task HandleValidSubmit()
+    {
+        isSubmitting = true;
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/brands", brand);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var newBrand = await response.Content.ReadFromJsonAsync<Brand>();
+                if (newBrand != null)
+                {
+                    await OnBrandCreated.InvokeAsync(newBrand);
+                }
+            }
+            else
+            {
+                // Handle error (e.g., show an error message to the user)
+                Console.WriteLine($"Error creating brand: {response.ReasonPhrase}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception during brand creation: {ex.Message}");
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    // A local model for the form to handle validation
+    public class BrandCreateModel
+    {
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Brand name is required.")]
+        public string BrandName { get; set; } = string.Empty;
+        public string? Description { get; set; }
+    }
+}

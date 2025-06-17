@@ -1,0 +1,99 @@
+﻿@using PromoTrack.Pwa.Models
+@using System.Net.Http.Json
+@using System.ComponentModel.DataAnnotations
+@inject HttpClient Http
+
+@if (availableQuestions == null)
+{
+    <p><em>Loading available questions...</em></p>
+}
+else
+{
+    <EditForm Model="@defaultQuestion" OnValidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator />
+
+        <div class="space-y-4">
+            <div>
+                <label for="question" class="form-label">Question</label>
+                <InputSelect id="question" class="form-input" @bind-Value="defaultQuestion.QuestionId">
+                    <option value="0">Select a question to add...</option>
+                    @foreach (var question in availableQuestions)
+                    {
+                        <option value="@question.QuestionId">@question.QuestionText</option>
+                    }
+                </InputSelect>
+                <ValidationMessage For="@(() => defaultQuestion.QuestionId)" />
+            </div>
+
+            <div class="flex items-center">
+                <InputCheckbox id="isMandatory" @bind-Value="defaultQuestion.IsMandatoryByDefault" />
+                <label for="isMandatory" class="ml-2 form-label !mb-0">Is Mandatory by Default?</label>
+            </div>
+        </div>
+
+        <div class="mt-6 flex justify-end">
+            <button type="submit" class="btn-primary" disabled="@isSubmitting">
+                @(isSubmitting ? "Saving..." : "Add Default Question")
+            </button>
+        </div>
+    </EditForm>
+}
+
+@code {
+    [Parameter]
+    public int BrandId { get; set; }
+
+    [Parameter]
+    public EventCallback OnDefaultQuestionAdded { get; set; }
+
+    private List<Question>? availableQuestions;
+    private AddDefaultQuestionModel defaultQuestion = new();
+    private bool isSubmitting = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Fetch all master questions to populate the dropdown
+            availableQuestions = await Http.GetFromJsonAsync<List<Question>>("api/questions");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching available questions: {ex.Message}");
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        isSubmitting = true;
+        try
+        {
+            var response = await Http.PostAsJsonAsync($"api/brands/{BrandId}/default-questions", defaultQuestion);
+
+            if (response.IsSuccessStatusCode)
+            {
+                await OnDefaultQuestionAdded.InvokeAsync();
+            }
+            else
+            {
+                Console.WriteLine($"Error adding default question: {await response.Content.ReadAsStringAsync()}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception when adding default question: {ex.Message}");
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    public class AddDefaultQuestionModel
+    {
+        [Range(1, int.MaxValue, ErrorMessage = "Please select a question.")]
+        public int QuestionId { get; set; }
+        public bool IsMandatoryByDefault { get; set; }
+        public int SortOrder { get; set; } // We can enhance this later
+    }
+}

@@ -9,6 +9,10 @@
     --color-border: #E5E7EB; /* A light border color */
 }
 
+nav.flex-grow {
+    color: wheat;
+}
+
 html, body {
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     background-color: var(--color-background);
@@ -50,3 +54,8 @@ html, body {
     .btn-primary:hover {
         background-color: var(--color-primary-dark);
     }
+
+a.nav-link.active
+Specificity: (0,2,1) {
+    color: wheat !important;
+}

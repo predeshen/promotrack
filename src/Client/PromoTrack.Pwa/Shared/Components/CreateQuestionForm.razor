@@ -1,0 +1,87 @@
+﻿@using PromoTrack.Pwa.Models
+@using System.Net.Http.Json
+@using System.ComponentModel.DataAnnotations
+@inject HttpClient Http
+
+<EditForm Model="@question" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+
+    <div class="space-y-4">
+        <div>
+            <label for="questionText" class="form-label">Question Text</label>
+            <InputText id="questionText" class="form-input" @bind-Value="question.QuestionText" />
+            <ValidationMessage For="@(() => question.QuestionText)" />
+        </div>
+
+        <div>
+            <label for="questionType" class="form-label">Question Type</label>
+            <InputSelect id="questionType" class="form-input" @bind-Value="question.QuestionType">
+                <option value="">Select a type...</option>
+                <option value="FreeText">Free Text</option>
+                <option value="Numeric">Numeric</option>
+                <option value="YesNo">Yes/No</option>
+                <option value="MultipleChoice_Single">Multiple Choice (Single Answer)</option>
+                <option value="MultipleChoice_Multiple">Multiple Choice (Multiple Answers)</option>
+            </InputSelect>
+            <ValidationMessage For="@(() => question.QuestionType)" />
+        </div>
+
+        <div>
+            <label for="hintText" class="form-label">Hint Text (Optional)</label>
+            <InputTextArea id="hintText" class="form-input" @bind-Value="question.HintText" />
+        </div>
+    </div>
+
+    <div class="mt-6 flex justify-end">
+        <button type="submit" class="btn-primary" disabled="@isSubmitting">
+            @(isSubmitting ? "Saving..." : "Create Question")
+        </button>
+    </div>
+</EditForm>
+
+@code {
+    [Parameter]
+    public EventCallback<Question> OnQuestionCreated { get; set; }
+
+    private QuestionCreateModel question = new();
+    private bool isSubmitting = false;
+
+    private async Task HandleValidSubmit()
+    {
+        isSubmitting = true;
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/questions", question);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var newQuestion = await response.Content.ReadFromJsonAsync<Question>();
+                if (newQuestion != null)
+                {
+                    await OnQuestionCreated.InvokeAsync(newQuestion);
+                }
+            }
+            else
+            {
+                Console.WriteLine($"Error creating question: {await response.Content.ReadAsStringAsync()}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception during question creation: {ex.Message}");
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    public class QuestionCreateModel
+    {
+        [Required]
+        public string QuestionText { get; set; } = string.Empty;
+        [Required]
+        public string QuestionType { get; set; } = string.Empty;
+        public string? HintText { get; set; }
+    }
+}

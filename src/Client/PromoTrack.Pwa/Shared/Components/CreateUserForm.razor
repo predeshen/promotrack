@@ -1,0 +1,101 @@
+﻿@using PromoTrack.Pwa.Models
+@using System.Net.Http.Json
+@using System.ComponentModel.DataAnnotations
+@inject HttpClient Http
+
+<EditForm Model="@user" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+
+    <div class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label for="firstName" class="form-label">First Name</label>
+                <InputText id="firstName" class="form-input" @bind-Value="user.FirstName" />
+                <ValidationMessage For="@(() => user.FirstName)" />
+            </div>
+            <div>
+                <label for="lastName" class="form-label">Last Name</label>
+                <InputText id="lastName" class="form-input" @bind-Value="user.LastName" />
+                <ValidationMessage For="@(() => user.LastName)" />
+            </div>
+        </div>
+        <div>
+            <label for="email" class="form-label">Email Address</label>
+            <InputText id="email" type="email" class="form-input" @bind-Value="user.Email" />
+            <ValidationMessage For="@(() => user.Email)" />
+        </div>
+        <div>
+            <label for="password" class="form-label">Password</label>
+            <InputText id="password" type="password" class="form-input" @bind-Value="user.Password" />
+            <ValidationMessage For="@(() => user.Password)" />
+        </div>
+        <div>
+            <label for="role" class="form-label">Role</label>
+            <InputSelect id="role" class="form-input" @bind-Value="user.Role">
+                <option value="">Select a role...</option>
+                <option value="Admin">Admin</option>
+                <option value="Promoter">Promoter</option>
+                <option value="Manager">Manager</option>
+            </InputSelect>
+            <ValidationMessage For="@(() => user.Role)" />
+        </div>
+    </div>
+
+    <div class="mt-6 flex justify-end">
+        <button type="submit" class="btn-primary" disabled="@isSubmitting">
+            @(isSubmitting ? "Saving..." : "Create User")
+        </button>
+    </div>
+</EditForm>
+
+@code {
+    [Parameter]
+    public EventCallback<User> OnUserCreated { get; set; }
+
+    private UserCreateModel user = new();
+    private bool isSubmitting = false;
+
+    private async Task HandleValidSubmit()
+    {
+        isSubmitting = true;
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/users", user);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var newUser = await response.Content.ReadFromJsonAsync<User>();
+                if (newUser != null)
+                {
+                    await OnUserCreated.InvokeAsync(newUser);
+                }
+            }
+            else
+            {
+                Console.WriteLine($"Error creating user: {await response.Content.ReadAsStringAsync()}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception during user creation: {ex.Message}");
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    public class UserCreateModel
+    {
+        [Required]
+        public string FirstName { get; set; } = string.Empty;
+        [Required]
+        public string LastName { get; set; } = string.Empty;
+        [Required, EmailAddress]
+        public string Email { get; set; } = string.Empty;
+        [Required, MinLength(6, ErrorMessage = "Password must be at least 6 characters.")]
+        public string Password { get; set; } = string.Empty;
+        [Required]
+        public string Role { get; set; } = string.Empty;
+    }
+}

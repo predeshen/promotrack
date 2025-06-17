@@ -1,0 +1,83 @@
+﻿@using PromoTrack.Pwa.Models
+@using System.Net.Http.Json
+@using System.ComponentModel.DataAnnotations
+@inject HttpClient Http
+
+<EditForm Model="@product" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+
+    <div class="space-y-4">
+        <div>
+            <label for="sku" class="form-label">SKU (Stock Keeping Unit)</label>
+            <InputText id="sku" class="form-input" @bind-Value="product.Sku" />
+            <ValidationMessage For="@(() => product.Sku)" />
+        </div>
+        <div>
+            <label for="productName" class="form-label">Product Name</label>
+            <InputText id="productName" class="form-input" @bind-Value="product.ProductName" />
+            <ValidationMessage For="@(() => product.ProductName)" />
+        </div>
+        <div>
+            <label for="defaultPrice" class="form-label">Default Price (Optional)</label>
+            <InputNumber id="defaultPrice" class="form-input" @bind-Value="product.DefaultPrice" />
+        </div>
+        <div>
+            <label for="description" class="form-label">Description</label>
+            <InputTextArea id="description" class="form-input" @bind-Value="product.Description" />
+        </div>
+    </div>
+
+    <div class="mt-6 flex justify-end">
+        <button type="submit" class="btn-primary" disabled="@isSubmitting">
+            @(isSubmitting ? "Saving..." : "Create Product")
+        </button>
+    </div>
+</EditForm>
+
+@code {
+    [Parameter]
+    public EventCallback<Product> OnProductCreated { get; set; }
+
+    private ProductCreateModel product = new();
+    private bool isSubmitting = false;
+
+    private async Task HandleValidSubmit()
+    {
+        isSubmitting = true;
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/products", product);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var newProduct = await response.Content.ReadFromJsonAsync<Product>();
+                if (newProduct != null)
+                {
+                    await OnProductCreated.InvokeAsync(newProduct);
+                }
+            }
+            else
+            {
+                Console.WriteLine($"Error creating product: {await response.Content.ReadAsStringAsync()}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception during product creation: {ex.Message}");
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    public class ProductCreateModel
+    {
+        [Required]
+        public string Sku { get; set; } = string.Empty;
+        [Required]
+        public string ProductName { get; set; } = string.Empty;
+        public decimal? DefaultPrice { get; set; }
+        public string? Description { get; set; }
+    }
+}

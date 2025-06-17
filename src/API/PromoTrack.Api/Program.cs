@@ -1,16 +1,33 @@
 using Microsoft.EntityFrameworkCore;
-using PromoTrack.Application.Interfaces; 
+using PromoTrack.Application.Interfaces;
 using PromoTrack.Infrastructure.Data;
 using PromoTrack.Infrastructure.Repositories;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+const string MyAllowSpecificOrigins = "AllowBlazorApp";
 
+// --- START: Services Configuration ---
+
+// 1. Add CORS services
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: MyAllowSpecificOrigins,
+                      policy =>
+                      {
+                          policy.WithOrigins("https://localhost:7256") // PWA's address
+                                .AllowAnyHeader()
+                                .AllowAnyMethod();
+                      });
+});
+
+// 2. Add DbContext
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 
-//Dependency Injection
+// 3. Register Repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IBrandRepository, BrandRepository>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
@@ -21,21 +38,22 @@ builder.Services.AddScoped<IShelfImageRepository, ShelfImageRepository>();
 builder.Services.AddScoped<IExtractedProductDataRepository, ExtractedProductDataRepository>();
 builder.Services.AddScoped<IQuestionRepository, QuestionRepository>();
 
-// --- ADD CORS POLICY ---
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowBlazorApp",
-        builder => builder.WithOrigins("https://localhost:7276") // Use your PWA's HTTPS URL
-                           .AllowAnyHeader()
-                           .AllowAnyMethod());
-});
+// 4. Configure Controllers and JSON Serializer
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    });
 
-builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// --- END: Services Configuration ---
+
+
 var app = builder.Build();
 
+// --- START: HTTP Request Pipeline Configuration ---
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -44,11 +62,12 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// --- USE THE CORS POLICY ---
-app.UseCors("AllowBlazorApp");
+// Apply the CORS policy here, right before Authorization. This is the crucial part.
+app.UseCors(MyAllowSpecificOrigins);
 
 app.UseAuthorization();
 
+// This single line discovers and maps all your controller endpoints.
 app.MapControllers();
 
 app.Run();

@@ -19,4 +19,6 @@ public class Brand
 
     [JsonPropertyName("isActive")]
     public bool IsActive { get; set; }
+    [JsonPropertyName("defaultQuestions")]
+    public List<BrandQuestionDefault> DefaultQuestions { get; set; } = new();
 }
