@@ -1,11 +1,19 @@
 ﻿@inherits LayoutComponentBase
 
-<div class="main">
-    <!-- This will be our navigation sidebar -->
-    <NavMenu />
+<AuthorizeView>
+    <Authorized>
+        <!-- This entire layout will ONLY be shown to logged-in users -->
+        <div class="main">
+            <NavMenu />
 
-    <main class="content">
-        <!-- This is where the content of each page will be rendered -->
-        @Body
-    </main>
-</div>
+            <main class="content">
+                @Body
+            </main>
+        </div>
+    </Authorized>
+    <NotAuthorized>
+        <!-- If for any reason a non-logged-in user gets here,
+             we immediately redirect them to the login page. -->
+        <RedirectToLogin />
+    </NotAuthorized>
+</AuthorizeView>

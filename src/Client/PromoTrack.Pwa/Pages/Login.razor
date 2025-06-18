@@ -1,0 +1,81 @@
+﻿@page "/login"
+@layout EmptyLayout
+@using PromoTrack.Pwa.Models
+@using PromoTrack.Pwa.Services
+@inject AuthService AuthService
+@inject NavigationManager NavigationManager
+
+<div class="min-h-screen flex items-center justify-center bg-gray-100">
+    <div class="max-w-md w-full bg-white p-8 rounded-lg shadow-md">
+        <div class="text-center mb-8">
+            <img src="images/logo.jpg" alt="Firebrand Logo" class="h-12 mx-auto mb-4" />
+            <h2 class="text-2xl font-bold text-gray-800">Welcome Back</h2>
+            <p class="text-gray-600">Please sign in to your account</p>
+        </div>
+
+        <EditForm Model="@loginRequest" OnValidSubmit="HandleLogin">
+            <DataAnnotationsValidator />
+
+            <div class="space-y-6">
+                <div>
+                    <label for="email" class="form-label">Email Address</label>
+                    <InputText id="email" type="email" class="form-input" @bind-Value="loginRequest.Email" />
+                    <ValidationMessage For="@(() => loginRequest.Email)" />
+                </div>
+                <div>
+                    <label for="password" class="form-label">Password</label>
+                    <InputText id="password" type="password" class="form-input" @bind-Value="loginRequest.Password" />
+                    <ValidationMessage For="@(() => loginRequest.Password)" />
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="mt-4 text-red-600 text-sm text-center">
+                    @errorMessage
+                </div>
+            }
+
+            <div class="mt-8">
+                <button type="submit" class="w-full btn-primary py-3" disabled="@isSubmitting">
+                    @(isSubmitting ? "Signing In..." : "Sign In")
+                </button>
+            </div>
+        </EditForm>
+    </div>
+</div>
+
+
+@code {
+    private LoginRequest loginRequest = new();
+    private bool isSubmitting = false;
+    private string? errorMessage;
+
+    private async Task HandleLogin()
+    {
+        isSubmitting = true;
+        errorMessage = null;
+        try
+        {
+            var result = await AuthService.LoginAsync(loginRequest);
+            if (result != null)
+            {
+                // If login is successful, redirect to the dashboard home page
+                NavigationManager.NavigateTo("/", forceLoad: true);
+            }
+            else
+            {
+                errorMessage = "Invalid email or password.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "An unexpected error occurred. Please try again.";
+            Console.WriteLine($"Login exception: {ex.Message}");
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+}
