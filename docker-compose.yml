@@ -1,0 +1,53 @@
+version: '3.8'
+
+# This file defines our multi-container application
+services:
+  # The SQL Server Database Container
+  db:
+    container_name: promotrack-db
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      - ACCEPT_EULA=Y
+      # IMPORTANT: Use a strong password for production.
+      - MSSQL_SA_PASSWORD=YourStrongPassword123!
+    ports:
+      # Expose the database on the host machine for tools like SSMS to connect
+      - "1433:1433"
+    volumes:
+      # This makes sure our database data is not lost when the container stops
+      - sqlserver_data:/var/opt/mssql
+
+  # The .NET Web API Container
+  api:
+    container_name: promotrack-api
+    build:
+      context: . # The build context is the root of our solution
+      dockerfile: src/API/PromoTrack.Api/Dockerfile # Path to the API's Dockerfile
+    ports:
+      # Map port 8081 on your local machine to port 8080 inside the container
+      - "8081:8080"
+    environment:
+      # Tell the API how to connect to the database container
+      - ConnectionStrings__DefaultConnection=Server=db;Database=PromoTrackDb;User Id=sa;Password=YourStrongPassword123!;Trusted_Connection=False;TrustServerCertificate=True;
+      - ASPNETCORE_URLS=http://+:8080
+      - Jwt__SecretKey=SOME_SUPER_SECRET_KEY_THAT_IS_LONG_AND_COMPLEX_ENOUGH_FOR_HS256_ALGORITHM
+      - Jwt__Issuer=https://promotrack.api
+      - Jwt__Audience=https://promotrack.pwa
+    depends_on:
+      - db # This ensures the database starts before the API
+
+  # The Blazor PWA Container (served by Nginx)
+  pwa:
+    container_name: promotrack-pwa
+    build:
+      context: .
+      dockerfile: src/Client/PromoTrack.Pwa/Dockerfile # Path to the PWA's Dockerfile
+    ports:
+      # Map port 8080 on your local machine to port 80 inside the container
+      - "8080:80"
+    depends_on:
+      - api # Wait for the API to be ready
+
+# This named volume will be managed by Docker to persist our database data
+volumes:
+  sqlserver_data:
