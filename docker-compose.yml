@@ -1,5 +1,3 @@
-version: '3.8'
-
 # This file defines our multi-container application
 services:
   # The SQL Server Database Container

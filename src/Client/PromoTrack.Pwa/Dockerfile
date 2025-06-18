@@ -1,8 +1,8 @@
 # Stage 1: Build the Blazor PWA
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build-env
 WORKDIR /app
 
-# Copy csproj and restore as a distinct layer
+# Copy the PWA project file first and restore its dependencies
 COPY src/Client/PromoTrack.Pwa/*.csproj ./src/Client/PromoTrack.Pwa/
 RUN dotnet restore src/Client/PromoTrack.Pwa/PromoTrack.Pwa.csproj
 
@@ -19,7 +19,5 @@ WORKDIR /usr/share/nginx/html
 # Copy the published PWA files from the build stage
 COPY --from=build-env /app/publish/wwwroot .
 
-# Copy a custom nginx config if you have one, or rely on the default
-# For Blazor PWA routing to work correctly, a custom config is needed.
-# Let's add one to your wwwroot folder.
+# Copy our custom Nginx configuration
 COPY src/Client/PromoTrack.Pwa/nginx.conf /etc/nginx/conf.d/default.conf
