@@ -8,15 +8,15 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-// --- This is the part that needs to change ---
+// --- THIS IS THE CRITICAL FIX ---
+// Configure HttpClient to talk to the API at its correct HTTP address and port.
 builder.Services.AddScoped(sp => new HttpClient
 {
-    // Use the port we exposed for the API in docker-compose.yml
-    BaseAddress = new Uri("https://localhost:8081/")
+    BaseAddress = new Uri("http://localhost:8081/")
 });
 
 
-// The rest of the file remains the same
+// The rest of the file remains the same.
 builder.Services.AddAuthorizationCore();
 builder.Services.AddScoped<AuthenticationStateProvider, ApiAuthenticationStateProvider>();
 builder.Services.AddScoped<AuthService>();

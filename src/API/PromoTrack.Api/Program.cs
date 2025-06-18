@@ -11,15 +11,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 const string MyAllowSpecificOrigins = "AllowBlazorApp";
 
-// --- START: Services Configuration ---
-
-// 1. Add CORS services
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(name: MyAllowSpecificOrigins,
                       policy =>
                       {
-                          policy.WithOrigins("https://localhost:7256") // PWA's address
+                          // Ensure this matches the PWA's address
+                          policy.WithOrigins("http://localhost:8080")
                                 .AllowAnyHeader()
                                 .AllowAnyMethod();
                       });
