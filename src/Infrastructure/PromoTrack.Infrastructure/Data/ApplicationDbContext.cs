@@ -129,15 +129,14 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<User>().HasData(
             new User
             {
-                UserId = 1, // Explicitly set the ID
+                UserId = 1,
                 FirstName = "Admin",
                 LastName = "User",
                 Email = "admin@promotrack.com",
                 PasswordHash = adminPasswordHash,
                 Role = "Admin",
                 IsActive = true,
-                CreatedDate = DateTime.UtcNow
-            }
-        );
+                CreatedDate = null,
+            });
     }
 }

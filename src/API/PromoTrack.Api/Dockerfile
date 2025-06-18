@@ -1,24 +1,27 @@
-# Use the official .NET SDK image to build the app
+# Stage 1: Build the app using the full .NET 9 SDK
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build-env
-WORKDIR /app
-
-# Copy csproj files for all backend projects
-COPY src/Core/PromoTrack.Domain/*.csproj ./src/Core/PromoTrack.Domain/
-COPY src/Core/PromoTrack.Application/*.csproj ./src/Core/PromoTrack.Application/
-COPY src/Infrastructure/PromoTrack.Infrastructure/*.csproj ./src/Infrastructure/PromoTrack.Infrastructure/
-COPY src/API/PromoTrack.Api/*.csproj ./src/API/PromoTrack.Api/
-
-# Restore dependencies for the API project specifically
-RUN dotnet restore src/API/PromoTrack.Api/PromoTrack.Api.csproj
-
-# Copy the rest of the source code
+WORKDIR /src
 COPY . .
-
-# Publish just the API project
+RUN dotnet restore
 RUN dotnet publish src/API/PromoTrack.Api/PromoTrack.Api.csproj -c Release -o /app/publish
 
-# Use the smaller ASP.NET runtime image for the final image
-FROM mcr.microsoft.com/dotnet/aspnet:9.0
+# --- THIS IS THE CRITICAL FIX ---
+# The final image is based on the SDK.
+# We will copy the ENTIRE source code into it, ensuring that any
+# build-time tools like 'dotnet ef' have everything they need.
+FROM mcr.microsoft.com/dotnet/sdk:9.0
 WORKDIR /app
-COPY --from=build-env /app/publish .
-ENTRYPOINT ["dotnet", "PromoTrack.Api.dll"]
+
+# First, copy the entire source code from the build context.
+# This ensures all .csproj and .cs files are present.
+COPY . .
+
+# Install the dotnet-ef tool
+RUN dotnet tool install --global dotnet-ef
+ENV PATH="${PATH}:/root/.dotnet/tools"
+
+# Now, copy the already-published application into a separate folder
+COPY --from=build-env /app/publish ./publish
+
+# The entrypoint will run the app from the 'publish' folder
+ENTRYPOINT ["dotnet", "publish/PromoTrack.Api.dll"]

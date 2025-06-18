@@ -52,7 +52,7 @@ namespace PromoTrack.Domain
         /// <summary>
         /// The date and time when the user account was created.
         /// </summary>
-        public DateTime CreatedDate { get; set; }
+        public DateTime? CreatedDate { get; set; }
 
         /// <summary>
         /// The date and time of the user's last login.

@@ -27,11 +27,20 @@ public class AuthController : ControllerBase
         // 1. Find the user by email
         var user = await _userRepository.GetUserByEmailAsync(loginRequest.Email);
 
-        // 2. Validate user exists and password is correct
-        if (user == null || !BCrypt.Net.BCrypt.Verify(loginRequest.Password, user.PasswordHash))
+        // --- THIS IS THE FIX ---
+        // First, check if the user even exists.
+        if (user == null)
         {
             return Unauthorized("Invalid credentials.");
         }
+
+        // Only if the user exists, then check the password.
+        if (!BCrypt.Net.BCrypt.Verify(loginRequest.Password, user.PasswordHash))
+        {
+            return Unauthorized("Invalid credentials.");
+        }
+        // --- END OF FIX ---
+
 
         // 3. Generate the JWT
         var token = GenerateJwtToken(user);
@@ -54,7 +63,6 @@ public class AuthController : ControllerBase
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:SecretKey"]!));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
-        // Claims are pieces of information about the user
         var claims = new[]
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.UserId.ToString()),
@@ -66,7 +74,7 @@ public class AuthController : ControllerBase
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(claims),
-            Expires = DateTime.UtcNow.AddDays(7), // Token is valid for 7 days
+            Expires = DateTime.UtcNow.AddDays(7),
             Issuer = _configuration["Jwt:Issuer"],
             Audience = _configuration["Jwt:Audience"],
             SigningCredentials = credentials
