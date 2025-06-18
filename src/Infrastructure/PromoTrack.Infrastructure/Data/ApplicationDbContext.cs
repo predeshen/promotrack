@@ -121,5 +121,23 @@ public class ApplicationDbContext : DbContext
             .WithMany() // An option doesn't need a list of all answers that ever selected it.
             .HasForeignKey(saso => saso.QuestionOptionId)
             .OnDelete(DeleteBehavior.Restrict); // PREVENTS the cascade delete cycle.
+
+        // Hash the password for the default admin user
+        var adminPasswordHash = BCrypt.Net.BCrypt.HashPassword("Password123!");
+
+        // Seed the default admin user
+        modelBuilder.Entity<User>().HasData(
+            new User
+            {
+                UserId = 1, // Explicitly set the ID
+                FirstName = "Admin",
+                LastName = "User",
+                Email = "admin@promotrack.com",
+                PasswordHash = adminPasswordHash,
+                Role = "Admin",
+                IsActive = true,
+                CreatedDate = DateTime.UtcNow
+            }
+        );
     }
 }
