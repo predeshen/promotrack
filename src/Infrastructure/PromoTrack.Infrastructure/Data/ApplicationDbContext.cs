@@ -24,7 +24,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<CampaignQuestionConfig> CampaignQuestionConfigs { get; set; }
     public DbSet<SurveyAnswer> SurveyAnswers { get; set; }
     public DbSet<SurveyAnswerSelectedOption> SurveyAnswerSelectedOptions { get; set; }
-
+    public DbSet<CampaignPromoter> CampaignPromoters { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -64,6 +64,20 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<PromoterActivity>().Property(pa => pa.CheckInLongitude).HasColumnType("decimal(18, 9)");
         modelBuilder.Entity<PromoterActivity>().Property(pa => pa.CheckOutLatitude).HasColumnType("decimal(18, 9)");
         modelBuilder.Entity<PromoterActivity>().Property(pa => pa.CheckOutLongitude).HasColumnType("decimal(18, 9)");
+
+        // --- ADD NEW CONFIGURATION FOR CAMPAIGNPROMOTER ---
+        modelBuilder.Entity<CampaignPromoter>()
+            .HasKey(cp => new { cp.CampaignId, cp.UserId }); // Composite key
+
+        modelBuilder.Entity<CampaignPromoter>()
+            .HasOne(cp => cp.Campaign)
+            .WithMany(c => c.AssignedPromoters)
+            .HasForeignKey(cp => cp.CampaignId);
+
+        modelBuilder.Entity<CampaignPromoter>()
+            .HasOne(cp => cp.User)
+            .WithMany(u => u.CampaignAssignments)
+            .HasForeignKey(cp => cp.UserId);
 
         // --- THIS IS THE FINAL FIX ---
         // Seeding Logic with a pre-generated, static hash for "Password123!"

@@ -60,9 +60,14 @@
             var result = await AuthService.LoginAsync(loginRequest);
             if (result != null)
             {
-                // If login is successful, redirect to the dashboard home page
-                NavigationManager.NavigateTo("/", forceLoad: true);
-            }
+                if (result.Role == "Promoter")
+                {
+                    NavigationManager.NavigateTo("/my-campaigns", forceLoad: true);
+                }
+                else
+                {
+                    NavigationManager.NavigateTo("/", forceLoad: true);
+                }            }
             else
             {
                 errorMessage = "Invalid email or password.";

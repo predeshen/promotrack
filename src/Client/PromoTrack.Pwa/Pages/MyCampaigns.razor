@@ -1,0 +1,70 @@
+﻿@page "/my-campaigns"
+@attribute [Authorize(Roles = "Promoter")]
+@inject HttpClient Http
+@using PromoTrack.Pwa.Models
+
+<div class="mb-6">
+    <h1 class="text-3xl font-bold">My Assigned Campaigns</h1>
+    <p class="text-lg text-gray-600">Here are the campaigns you need to work on.</p>
+</div>
+
+@if (campaigns == null)
+{
+    <p><em>Loading your campaigns...</em></p>
+}
+else if (!campaigns.Any())
+{
+    <div class="bg-surface rounded-lg shadow-md p-6 text-center">
+        <p class="text-gray-600">You have no campaigns assigned to you at the moment.</p>
+    </div>
+}
+else
+{
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        @foreach (var campaign in campaigns)
+        {
+            <div class="bg-surface rounded-lg shadow-md p-6 flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-start">
+                        <h3 class="text-xl font-bold">@campaign.CampaignName</h3>
+                        @if (campaign.IsActive)
+                        {
+                            <span class="px-2 py-1 text-xs font-semibold text-green-800 bg-green-200 rounded-full">Active</span>
+                        }
+                        else
+                        {
+                            <span class="px-2 py-1 text-xs font-semibold text-gray-800 bg-gray-200 rounded-full">Inactive</span>
+                        }
+                    </div>
+                    <p class="text-sm text-gray-500 mb-2">@campaign.Brand?.BrandName</p>
+                    <p class="text-sm text-gray-600">
+                        @campaign.StartDate.ToShortDateString() - @campaign.EndDate.ToShortDateString()
+                    </p>
+                </div>
+                <div class="mt-4">
+                    <button class="w-full btn-primary py-2">Start Visit</button>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+
+@code {
+    private List<Campaign>? campaigns;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Call our new, secure endpoint
+            campaigns = await Http.GetFromJsonAsync<List<Campaign>>("api/campaigns/my-campaigns");
+        }
+        catch (Exception ex)
+        {
+            // This will likely fail if the user is not authenticated or not a promoter,
+            // but the Blazor Authorize attribute should prevent that.
+            Console.WriteLine($"Error fetching assigned campaigns: {ex.Message}");
+        }
+    }
+}

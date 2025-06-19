@@ -12,9 +12,6 @@ public class Campaign
     public bool IsActive { get; set; } = true;
     public DateTime CreatedDate { get; set; }
     public ICollection<CampaignProduct> CampaignProducts { get; set; } = new List<CampaignProduct>();
-
-    /// <summary>
-    /// Collection of specific question configurations for this campaign.
-    /// </summary>
     public ICollection<CampaignQuestionConfig> QuestionConfigurations { get; set; } = new List<CampaignQuestionConfig>();
+    public ICollection<CampaignPromoter> AssignedPromoters { get; set; } = new List<CampaignPromoter>();
 }

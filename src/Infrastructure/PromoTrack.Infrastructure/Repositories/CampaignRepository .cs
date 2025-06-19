@@ -160,4 +160,30 @@ public class CampaignRepository : ICampaignRepository
         await _context.SaveChangesAsync();
         return existingConfig;
     }
+
+    public async Task AssignPromoterToCampaignAsync(int campaignId, int userId)
+    {
+        // Check if the assignment already exists to prevent duplicates
+        var exists = await _context.CampaignPromoters
+            .AnyAsync(cp => cp.CampaignId == campaignId && cp.UserId == userId);
+
+        if (!exists)
+        {
+            var campaignPromoter = new CampaignPromoter
+            {
+                CampaignId = campaignId,
+                UserId = userId
+            };
+            await _context.CampaignPromoters.AddAsync(campaignPromoter);
+            await _context.SaveChangesAsync();
+        }
+    }
+    public async Task<IEnumerable<Campaign>> GetCampaignsByPromoterIdAsync(int userId)
+    {
+        return await _context.CampaignPromoters
+            .Where(cp => cp.UserId == userId)
+            .Select(cp => cp.Campaign) // Select the Campaign navigation property
+            .Include(c => c.Brand)     // Also include the Brand details
+            .ToListAsync();
+    }
 }

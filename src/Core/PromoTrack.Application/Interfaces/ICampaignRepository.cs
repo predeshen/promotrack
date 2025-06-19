@@ -10,9 +10,8 @@ public interface ICampaignRepository
     Task UpdateCampaignAsync(Campaign campaign);
     Task DeleteCampaignAsync(int id);
     Task<CampaignProduct?> AddProductToCampaignAsync(int campaignId, int productId, decimal? specificPrice);
-
-    /// <summary>
-    /// Configures a question for a specific campaign, overriding brand defaults.
-    /// </summary>
     Task<CampaignQuestionConfig> ConfigureQuestionForCampaignAsync(int campaignId, int questionId, bool isActive, bool isMandatory, int sortOrder);
+    Task AssignPromoterToCampaignAsync(int campaignId, int userId);
+    Task<IEnumerable<Campaign>> GetCampaignsByPromoterIdAsync(int userId);
+
 }

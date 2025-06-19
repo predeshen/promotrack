@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.IdentityModel.Tokens.Jwt;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using PromoTrack.Application.Dtos;
 using PromoTrack.Application.Interfaces;
 using PromoTrack.Domain;
@@ -102,5 +104,30 @@ public class CampaignsController : ControllerBase
             dto.SortOrderForCampaign);
 
         return Ok(config);
+    }
+
+    [HttpPost("{campaignId}/promoters")]
+    public async Task<IActionResult> AssignPromoter(int campaignId, [FromBody] AssignPromoterDto dto)
+    {
+        // In a real app, we'd add checks to ensure the campaign and user exist.
+        await _campaignRepository.AssignPromoterToCampaignAsync(campaignId, dto.UserId);
+        return NoContent(); // 204 No Content is a good response for a successful action that doesn't return data.
+    }
+
+    [HttpGet("my-campaigns")]
+    [Authorize(Roles = "Promoter")] // This endpoint can only be accessed by users with the "Promoter" role.
+    public async Task<ActionResult<IEnumerable<Campaign>>> GetMyCampaigns()
+    {
+        // Get the logged-in user's ID from their token claims.
+        var userIdClaim = User.FindFirst(JwtRegisteredClaimNames.Sub);
+
+        if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+        {
+            return Unauthorized(); // Should not happen if [Authorize] is working
+        }
+
+        var campaigns = await _campaignRepository.GetCampaignsByPromoterIdAsync(userId);
+
+        return Ok(campaigns);
     }
 }
