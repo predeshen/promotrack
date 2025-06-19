@@ -10,11 +10,21 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 // --- THIS IS THE CRITICAL FIX ---
 // Configure HttpClient to talk to the API at its correct HTTP address and port.
-builder.Services.AddScoped(sp => new HttpClient
-{
-    BaseAddress = new Uri("http://localhost:8081/")
-});
 
+if (builder.HostEnvironment.IsDevelopment())
+{
+    builder.Services.AddScoped(sp => new HttpClient
+    {
+        BaseAddress = new Uri("http://localhost:8081/")
+    });
+}
+else
+{
+    builder.Services.AddScoped(sp => new HttpClient
+    {
+        BaseAddress = new Uri("http://172.26.10.136/")
+    });
+}
 
 // The rest of the file remains the same.
 builder.Services.AddAuthorizationCore();
