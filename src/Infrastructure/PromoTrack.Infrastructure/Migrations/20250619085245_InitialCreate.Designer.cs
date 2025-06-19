@@ -12,7 +12,7 @@ using PromoTrack.Infrastructure.Data;
 namespace PromoTrack.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250618213302_InitialCreate")]
+    [Migration("20250619085245_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -522,6 +522,19 @@ namespace PromoTrack.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("Users");
+
+                    b.HasData(
+                        new
+                        {
+                            UserId = 1,
+                            CreatedDate = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Email = "admin@promotrack.com",
+                            FirstName = "Admin",
+                            IsActive = true,
+                            LastName = "User",
+                            PasswordHash = "$2a$11$s1aH.V3eGvL8aY2aB3c4D.5e6F7g8H9i0J1k2L3m4N5o6P7q8R9sT",
+                            Role = "Admin"
+                        });
                 });
 
             modelBuilder.Entity("PromoTrack.Domain.BrandQuestionDefault", b =>

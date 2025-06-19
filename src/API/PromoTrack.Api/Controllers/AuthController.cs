@@ -27,10 +27,11 @@ public class AuthController : ControllerBase
         // 1. Find the user by email
         var user = await _userRepository.GetUserByEmailAsync(loginRequest.Email);
 
-        // --- THIS IS THE FIX ---
+        // --- THIS IS THE CRITICAL FIX ---
         // First, check if the user even exists.
         if (user == null)
         {
+            // If user is null, immediately return Unauthorized.
             return Unauthorized("Invalid credentials.");
         }
 

@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Polly;
 using PromoTrack.Application.Interfaces;
 using PromoTrack.Infrastructure.Data;
 using PromoTrack.Infrastructure.Repositories;
@@ -68,6 +70,42 @@ builder.Services.AddSwaggerGen();
 
 
 var app = builder.Build();
+
+// --- THIS IS THE NEW, MORE ROBUST AUTOMATION LOGIC ---
+// It will wait and retry if the database isn't ready yet.
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var logger = services.GetRequiredService<ILogger<Program>>();
+    var context = services.GetRequiredService<ApplicationDbContext>();
+
+    try
+    {
+        logger.LogInformation("Attempting to apply database migrations...");
+
+        var retryPolicy = Policy
+            .Handle<SqlException>()
+            .WaitAndRetry(new[]
+            {
+                TimeSpan.FromSeconds(5),
+                TimeSpan.FromSeconds(10),
+                TimeSpan.FromSeconds(15)
+            }, (exception, timeSpan, retryCount, ctx) =>
+            {
+                logger.LogWarning(exception, "Error connecting to DB. Retrying in {timeSpan}s... (Attempt {retryCount})", timeSpan.Seconds, retryCount);
+            });
+
+        retryPolicy.Execute(() =>
+        {
+            context.Database.Migrate();
+            logger.LogInformation("Database migration successful.");
+        });
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "An error occurred during database migration after all retries.");
+    }
+}
 
 app.UseSwagger();
 app.UseSwaggerUI();

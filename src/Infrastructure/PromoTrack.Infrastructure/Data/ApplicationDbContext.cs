@@ -40,7 +40,7 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<BrandQuestionDefault>().HasKey(bqd => new { bqd.BrandId, bqd.QuestionId });
         modelBuilder.Entity<CampaignQuestionConfig>().HasKey(cqc => new { cqc.CampaignId, cqc.QuestionId });
 
-        // --- Configure Relationships and Delete Behavior ---
+        // --- Configure Relationships ---
         modelBuilder.Entity<CampaignProduct>().HasOne(cp => cp.Campaign).WithMany(c => c.CampaignProducts).HasForeignKey(cp => cp.CampaignId);
         modelBuilder.Entity<CampaignProduct>().HasOne(cp => cp.Product).WithMany(p => p.CampaignProducts).HasForeignKey(cp => cp.ProductId);
         modelBuilder.Entity<BrandQuestionDefault>().HasOne(bqd => bqd.Brand).WithMany(b => b.DefaultQuestions).HasForeignKey(bqd => bqd.BrandId);
@@ -48,8 +48,10 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<CampaignQuestionConfig>().HasOne(cqc => cqc.Campaign).WithMany(c => c.QuestionConfigurations).HasForeignKey(cqc => cqc.CampaignId);
         modelBuilder.Entity<CampaignQuestionConfig>().HasOne(cqc => cqc.Question).WithMany(q => q.CampaignConfigurations).HasForeignKey(cqc => cqc.QuestionId);
 
-        // --- Fix for Cascade Path Issue ---
+        // --- THIS IS THE CRITICAL FIX FOR THE CASCADE PATH ERROR ---
+        modelBuilder.Entity<SurveyAnswer>().HasOne(sa => sa.PromoterActivity).WithMany(pa => pa.SurveyAnswers).OnDelete(DeleteBehavior.Cascade);
         modelBuilder.Entity<SurveyAnswer>().HasOne(sa => sa.Question).WithMany().HasForeignKey(sa => sa.QuestionId).OnDelete(DeleteBehavior.Restrict);
+        modelBuilder.Entity<SurveyAnswerSelectedOption>().HasOne(saso => saso.SurveyAnswer).WithMany(sa => sa.SelectedOptions).HasForeignKey(saso => saso.SurveyAnswerId).OnDelete(DeleteBehavior.Cascade);
         modelBuilder.Entity<SurveyAnswerSelectedOption>().HasOne(saso => saso.QuestionOption).WithMany().HasForeignKey(saso => saso.QuestionOptionId).OnDelete(DeleteBehavior.Restrict);
 
         // --- Fix for Decimal Precision Warnings ---
@@ -63,5 +65,21 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<PromoterActivity>().Property(pa => pa.CheckOutLatitude).HasColumnType("decimal(18, 9)");
         modelBuilder.Entity<PromoterActivity>().Property(pa => pa.CheckOutLongitude).HasColumnType("decimal(18, 9)");
 
+        // --- THIS IS THE FINAL FIX ---
+        // Seeding Logic with a pre-generated, static hash for "Password123!"
+        modelBuilder.Entity<User>().HasData(
+            new User
+            {
+                UserId = 1,
+                FirstName = "Admin",
+                LastName = "User",
+                Email = "admin@promotrack.com",
+                // This is a static, pre-generated hash. It will never change.
+                PasswordHash = "$2a$11$LT4ufsLIZCKkZnDFuMhgmekvdDqO9Zg6BIVCNvTXd/qCTgYyb0DaG",//Password123!
+                Role = "Admin",
+                IsActive = true,
+                CreatedDate = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+            }
+        );
     }
 }
