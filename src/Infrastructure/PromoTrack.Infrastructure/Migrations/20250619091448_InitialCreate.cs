@@ -384,7 +384,7 @@ namespace PromoTrack.Infrastructure.Migrations
             migrationBuilder.InsertData(
                 table: "Users",
                 columns: new[] { "UserId", "CreatedDate", "Email", "FirstName", "IsActive", "LastLoginDate", "LastName", "PasswordHash", "PhoneNumber", "Role" },
-                values: new object[] { 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "admin@promotrack.com", "Admin", true, null, "User", "$2a$11$s1aH.V3eGvL8aY2aB3c4D.5e6F7g8H9i0J1k2L3m4N5o6P7q8R9sT", null, "Admin" });
+                values: new object[] { 1, new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "admin@promotrack.com", "Admin", true, null, "User", "$2a$11$LT4ufsLIZCKkZnDFuMhgmekvdDqO9Zg6BIVCNvTXd/qCTgYyb0DaG", null, "Admin" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_BrandQuestionDefaults_QuestionId",

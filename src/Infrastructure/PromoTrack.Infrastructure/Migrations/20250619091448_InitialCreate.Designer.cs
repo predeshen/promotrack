@@ -12,7 +12,7 @@ using PromoTrack.Infrastructure.Data;
 namespace PromoTrack.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250619085245_InitialCreate")]
+    [Migration("20250619091448_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -532,7 +532,7 @@ namespace PromoTrack.Infrastructure.Migrations
                             FirstName = "Admin",
                             IsActive = true,
                             LastName = "User",
-                            PasswordHash = "$2a$11$s1aH.V3eGvL8aY2aB3c4D.5e6F7g8H9i0J1k2L3m4N5o6P7q8R9sT",
+                            PasswordHash = "$2a$11$LT4ufsLIZCKkZnDFuMhgmekvdDqO9Zg6BIVCNvTXd/qCTgYyb0DaG",
                             Role = "Admin"
                         });
                 });
