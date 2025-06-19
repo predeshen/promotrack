@@ -22,7 +22,7 @@ else
 {
     builder.Services.AddScoped(sp => new HttpClient
     {
-        BaseAddress = new Uri("http://172.26.10.136/")
+        BaseAddress = new Uri("http://15.207.86.151/")
     });
 }
 
